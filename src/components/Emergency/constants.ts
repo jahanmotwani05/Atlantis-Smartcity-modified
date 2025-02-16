@@ -1,6 +1,5 @@
 export const GOOGLE_MAPS_API_KEY = 'AIzaSyAzR6pmtDsbTT6NsSToZWebhflHEQxzWcE';
 export const EMERGENCY_CONTACT = '+917980268239';
-
 export const mapStyles = [
   {
     "elementType": "geometry",
@@ -22,6 +21,6 @@ export const mapStyles = [
   {
     "featureType": "road",
     "elementType": "geometry.stroke",
-    "stylers": [{ "color": "#212a37"}]
-}
+    "stylers": [{ "color": "#212a37" }]
+  }
 ];

@@ -22,6 +22,6 @@ export const mapStyles = [
   {
     "featureType": "road",
     "elementType": "geometry.stroke",
-    "stylers": [{ "color": "#212a37" }]
-  }
+    "stylers": [{ "color": "#212a37"}]
+}
 ];

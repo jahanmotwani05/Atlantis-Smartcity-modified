@@ -5,6 +5,7 @@ import { auth } from '../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar';
+import Weather from './Weather';
 
 interface NewsItem {
   title: string;
@@ -279,6 +280,15 @@ const Home: React.FC = () => {
   const [currentTime] = useState('2025-02-16 12:01:27');
   const [currentUser] = useState('abhinavx04');
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   const categories = ['all', 'city', 'health', 'transport', 'emergency', 'events'];
 
   useEffect(() => {
@@ -399,7 +409,49 @@ const Home: React.FC = () => {
       {/* Background grid effect */}
       <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:40px_40px] opacity-10" />
       
-      <Navbar currentTime={currentTime} currentUser={currentUser} />
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Left side */}
+            <div className="flex items-center space-x-8">
+              <span className="text-2xl text-white font-light">Atlantis</span>
+              <div className="hidden md:flex space-x-4">
+                {['Events', 'Emergency', 'Announcements', 'Transportation', 'Alerts', 'Ambulance'].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => navigate(`/${item.toLowerCase()}`)}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+                  >
+                    <span>{item}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right side */}
+            <div className="flex items-center space-x-6">
+              {/* Weather Component */}
+              <div className="hidden lg:block">
+                <Weather />
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="hidden md:block">
+                  <span className="text-gray-400 text-sm">{currentTime} UTC</span>
+                  <span className="text-gray-400 text-sm ml-4">{currentUser}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       <main className="pt-20">
         <div className="container mx-auto px-4">

@@ -19,54 +19,103 @@ interface NewsItem {
   location?: string;
 }
 
+// Add helper function at the top after imports
+const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
+  return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+};
+
 // Update the NewsCard component
 const NewsCard: React.FC<{
   item: NewsItem;
   index: number;
-  progress: number;
+  active: number;
+  total: number;
   onClick: () => void;
-}> = ({ item, index, progress, onClick }) => {
-  const rotation = useTransform(progress, [0, 1], [index * 45, (index - 5) * 45]);
-  const y = useTransform(progress, [0, 1], [index * 100, (index - 5) * 100]);
-  const scale = useTransform(progress, [0, 1], [1 - index * 0.2, 1 - (index - 5) * 0.2]);
-  const opacity = useTransform(progress, [0, 1], [1 - index * 0.3, 1 - (index - 5) * 0.3]);
+}> = ({ item, index, active, total, onClick }) => {
+  const RADIUS = 1200;
+  const ANGLE = 360 / Math.min(total, 8);
+  const rotation = (index - active) * ANGLE;
+  
+  const angleRad = (rotation * Math.PI) / 180;
+  const x = RADIUS * Math.sin(angleRad);
+  const z = RADIUS * Math.cos(angleRad) - RADIUS;
+  
+  const scale = mapRange(z, -RADIUS, 0, 0.6, 1);
+  const opacity = mapRange(z, -RADIUS, 0, 0.3, 1);
 
   return (
     <motion.div
-      className="absolute w-[600px] bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer"
-      style={{
-        rotateX: rotation,
-        y,
+      initial={false}
+      animate={{
+        x,
+        z,
+        rotateY: rotation,
         scale,
         opacity,
-        transformStyle: 'preserve-3d',
-        transformPerspective: 1000,
       }}
-      whileHover={{ scale: scale.get() * 1.05 }}
+      transition={{
+        type: "spring",
+        stiffness: 80,
+        damping: 20,
+      }}
+      style={{
+        position: 'absolute',
+        width: '500px',
+        transformStyle: 'preserve-3d',
+        transformOrigin: 'center center',
+      }}
+      whileHover={{ scale: scale * 1.1 }}
       onClick={onClick}
+      className={`
+        bg-gray-800 rounded-xl overflow-hidden shadow-2xl cursor-pointer
+        transition-all duration-300 ease-out
+        hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]
+        ${Math.abs(rotation) < 90 ? 'pointer-events-auto' : 'pointer-events-none'}
+      `}
     >
-      {item.urlToImage && (
-        <div className="aspect-video w-full overflow-hidden">
-          <img
-            src={item.urlToImage}
-            alt={item.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = 'https://via.placeholder.com/640x360?text=No+Image+Available';
-            }}
-          />
-        </div>
-      )}
+      <div className="relative">
+        {item.urlToImage && (
+          <div className="aspect-[16/9] w-full overflow-hidden">
+            <img
+              src={item.urlToImage}
+              alt={item.title}
+              className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://via.placeholder.com/640x360?text=No+Image+Available';
+              }}
+            />
+          </div>
+        )}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/30 to-transparent" />
+      </div>
+      
       <div className="p-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-blue-400 text-sm">{item.source.name}</span>
-          {item.location && (
-            <span className="text-emerald-400 text-sm">📍 {item.location}</span>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-blue-400 text-sm font-medium">{item.source.name}</span>
+          <div className="flex items-center space-x-3">
+            {item.location && (
+              <span className="text-emerald-400 text-sm">📍 {item.location}</span>
+            )}
+            <span className="text-gray-400 text-sm">
+              {new Date(item.publishedAt).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+        
+        <h3 className="text-xl text-white font-semibold mb-3 line-clamp-2">{item.title}</h3>
+        <p className="text-gray-400 mb-4 line-clamp-2">{item.description}</p>
+        
+        <div className="flex justify-between items-center">
+          <button className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Read More
+          </button>
+          {item.category !== 'all' && (
+            <span className="text-sm text-gray-400 bg-gray-700/50 px-3 py-1 rounded-full">
+              {item.category}
+            </span>
           )}
         </div>
-        <h3 className="text-xl text-white font-semibold mb-2">{item.title}</h3>
-        <p className="text-gray-400 mb-4 line-clamp-3">{item.description}</p>
       </div>
     </motion.div>
   );
@@ -379,10 +428,68 @@ const Home: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : filteredNews.length > 0 ? (
-          <CarouselContainer 
-            news={filteredNews}
-            onSelectNews={setSelectedNews}
-          />
+          <>
+            <div 
+              className="relative h-[800px] w-full flex items-center justify-center overflow-hidden"
+              style={{
+                perspective: '2000px',
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              {filteredNews.map((item, index) => (
+                <NewsCard
+                  key={index}
+                  item={item}
+                  index={index}
+                  active={activeIndex}
+                  total={filteredNews.length}
+                  onClick={() => setSelectedNews(item)}
+                />
+              ))}
+            </div>
+
+            <div className="mt-8 flex justify-center space-x-4">
+              <button
+                onClick={() => setActiveIndex(prev => (prev - 1 + filteredNews.length) % filteredNews.length)}
+                className="group px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full transition-colors flex items-center space-x-2"
+              >
+                <svg 
+                  className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M15 19l-7-7 7-7" 
+                  />
+                </svg>
+                <span>Previous</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveIndex(prev => (prev + 1) % filteredNews.length)}
+                className="group px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full transition-colors flex items-center space-x-2"
+              >
+                <span>Next</span>
+                <svg 
+                  className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M9 5l7 7-7 7" 
+                  />
+                </svg>
+              </button>
+            </div>
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center h-64">
             <p className="text-gray-400 text-lg">No news found for this category</p>

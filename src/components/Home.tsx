@@ -4,6 +4,10 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import axios from 'axios';
 
+interface NewsApiResponse {
+  articles: NewsItem[];
+}
+
 interface NewsItem {
   title: string;
   description: string;
@@ -29,7 +33,7 @@ const Home: React.FC = () => {
     { name: 'Emergency', icon: '🚨', path: '/emergency' },
     { name: 'Announcements', icon: '📢', path: '/announcements' },
     { name: 'Transportation', icon: '🚗', path: '/transport' },
-    { name: 'Alerts', icon: '⚠️', path: '/alerts' },
+    { name: 'Alerts', icon: '⚠', path: '/alerts' },
     { name: 'Ambulance', icon: '🚑', path: '/ambulance' },
   ];
 
@@ -43,8 +47,8 @@ const Home: React.FC = () => {
   const fetchNews = async () => {
     try {
       const API_KEY = import.meta.env.VITE_NEWS_API_KEY; // Get API key from environment variables
-      const response = await axios.get(
-        `https://newsapi.org/v2/everything?q=smart+city+technology&apiKey=${API_KEY}`
+      const response = await axios.get<NewsApiResponse>(
+        `https://newsapi.org/v2/everything?q=smart+city&apiKey=${API_KEY}`
       );
 
       // Basic ML-like processing for news relevance

@@ -16,51 +16,134 @@ const Landing: React.FC = () => {
         muted
         playsInline
         className="absolute top-0 left-0 min-h-screen w-full object-cover z-0"
+        style={{ filter: 'brightness(0.9)' }}
       >
         <source src={backgroundVideo} type="video/mp4" />
-        Your browser does not support the video tag.
       </video>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10"></div>
+      {/* Subtle Overlay */}
+      <div className="absolute inset-0 bg-black/20 z-10"></div>
 
       {/* Content */}
       <div 
         className={`
           relative z-20 
           flex min-h-screen flex-col items-center justify-center 
-          transition-transform duration-500 
+          transition-all duration-500 ease-in-out
           ${showLogin ? 'translate-x-[-25%]' : ''}
         `}
       >
-        <h1 className="mb-12 text-7xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
-          ATLANTIS
-          <span className="block text-3xl mt-4 text-center bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text">
-            SMART CITY
-          </span>
-        </h1>
+        {/* Title Section */}
+        <div 
+          className="text-center mb-16 transform transition-all duration-500 hover:scale-105"
+          style={{
+            textShadow: '0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3)',
+            animation: 'fadeIn 1.5s ease-out',
+          }}
+        >
+          <h1 
+            className="text-8xl font-extrabold tracking-widest text-white"
+            style={{
+              letterSpacing: '0.15em',
+            }}
+          >
+            ATLANTIS
+            <span 
+              className="block text-3xl mt-6 font-light text-blue-200"
+              style={{
+                letterSpacing: '0.3em',
+              }}
+            >
+              SMART CITY OF THE FUTURE
+            </span>
+          </h1>
+        </div>
 
-        <div className="flex gap-6">
+        {/* Buttons */}
+        <div className="flex gap-8" style={{ animation: 'fadeIn 2s ease-out' }}>
           <button
             onClick={() => setShowLogin(true)}
-            className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl text-white font-bold tracking-wider hover:scale-105 transition-all duration-300"
+            className="
+              relative px-12 py-5
+              text-white text-lg font-light
+              rounded-full
+              transition-all duration-500
+              hover:scale-105
+              focus:outline-none
+            "
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              letterSpacing: '0.2em',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+            }}
           >
-            LOGIN
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 rounded-xl"></div>
+            EXPLORE
           </button>
           
           <button
             onClick={() => navigate('/signup')}
-            className="group relative px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl text-white font-bold tracking-wider hover:scale-105 transition-all duration-300"
+            className="
+              relative px-12 py-5
+              text-white text-lg font-light
+              rounded-full
+              transition-all duration-500
+              hover:scale-105
+              focus:outline-none
+            "
+            style={{
+              background: 'rgba(59, 130, 246, 0.2)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(147, 197, 253, 0.3)',
+              letterSpacing: '0.2em',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+            }}
           >
-            SIGN UP
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 rounded-xl"></div>
+            JOIN US
           </button>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div 
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+          style={{ animation: 'bounce 2s infinite' }}
+        >
+          <div className="w-[30px] h-[50px] border-2 border-white/50 rounded-full p-2">
+            <div className="w-1 h-3 bg-white/70 rounded-full mx-auto"></div>
+          </div>
         </div>
       </div>
 
       {/* Login Form */}
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
+
+      {/* Inline Styles for Animations */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes bounce {
+            0%, 100% {
+              transform: translateY(0) translateX(-50%);
+            }
+            50% {
+              transform: translateY(-20px) translateX(-50%);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

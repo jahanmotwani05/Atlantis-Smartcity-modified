@@ -3,25 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { GOOGLE_MAPS_API_KEY, EMERGENCY_CONTACT, mapStyles } from './constants';
+import Navbar from '..//Navbar';
+
+interface Place {
+  place_id: string;
+  name: string;
+  vicinity: string;
+  geometry: {
+    location: google.maps.LatLng;
+  };
+  type: string;
+}
 
 const Emergency: React.FC = () => {
   const navigate = useNavigate();
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [showEmergencyAlert, setShowEmergencyAlert] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
-  interface Place {
-    place_id: string;
-    name: string;
-    vicinity: string;
-    geometry: {
-      location: google.maps.LatLng;
-    };
-    type: string;
-  }
-  
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  
+  // Current time state
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [currentUser] = useState<string>('Krishna27S');
+
+  // Update current time every second
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const formattedTime = now.toISOString().slice(0, 19).replace('T', ' ');
+      setCurrentTime(formattedTime);
+    };
+
+    updateTime(); // Initial update
+    const interval = setInterval(updateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const mapContainerStyle = {
     width: '100%',
@@ -115,21 +134,7 @@ const Emergency: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 pb-8">
-      <nav className="bg-gray-800 border-b border-gray-700 fixed top-0 w-full z-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <span className="text-2xl text-white">Emergency Services</span>
-            </div>
-            <button
-              onClick={() => navigate('/home')}
-              className="text-gray-300 hover:bg-gray-700 px-3 py-2 rounded-md"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar currentTime={currentTime} currentUser={currentUser} />
 
       <main className="container mx-auto px-4 pt-20">
         <div className="grid gap-6 mb-6">

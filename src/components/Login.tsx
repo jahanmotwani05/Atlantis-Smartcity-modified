@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase/config';
 
-const Login = () => {
+interface LoginProps {
+  onClose: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onClose }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,78 +65,91 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Sign in to Atlantis
-          </h2>
-        </div>
+    <div className="fixed inset-y-0 right-0 w-1/2 z-50 animate-slideIn">
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-8 right-8 text-white/70 hover:text-white transition-colors"
+          style={{ fontSize: '24px' }}
+        >
+          ×
+        </button>
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-center">
-            {error}
+        <div className="relative w-full max-w-md mx-auto px-12 py-16">
+          <div className="mb-12 text-center">
+            <h2 className="text-4xl font-light text-white mb-3">
+              Welcome Back
+            </h2>
+            <p className="text-white/50">Sign in to continue</p>
           </div>
-        )}
 
-        <form onSubmit={handleEmailLogin} className="mt-8 space-y-6">
-          <div className="space-y-4">
+          {error && (
+            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-red-400 text-center text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleEmailLogin} className="space-y-6">
             <div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 focus:border-blue-500/50 transition-colors"
                 disabled={loading}
-                className="bg-white/5 w-full px-6 py-4 rounded-lg text-white border border-white/10 focus:border-blue-500/50 focus:outline-none transition-colors"
-                placeholder="Email address"
               />
             </div>
+
             <div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                className="bg-white/5 w-full px-6 py-4 rounded-lg text-white border border-white/10 focus:border-blue-500/50 focus:outline-none transition-colors"
                 placeholder="Password"
+                className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 focus:border-blue-500/50 transition-colors"
+                disabled={loading}
               />
             </div>
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-4 rounded-lg text-white font-medium transition-all duration-300 ${
-                loading 
+              className={`
+                w-full px-6 py-4 rounded-full text-white font-light
+                transition-all duration-300 
+                ${loading 
                   ? 'bg-blue-500/30 cursor-not-allowed' 
-                  : 'bg-blue-500 hover:bg-blue-600'
-              }`}
+                  : 'bg-blue-500/50 hover:bg-blue-500/60'
+                }
+              `}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div>
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className={`w-full py-4 rounded-lg text-white font-medium border transition-all duration-300 ${
-              loading 
-                ? 'border-white/20 bg-white/5 cursor-not-allowed' 
-                : 'border-white/10 bg-white/10 hover:bg-white/20'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-3">
+          <div className="mt-6">
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full px-6 py-4 rounded-full text-white font-light bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3"
+            >
               <img 
                 src="https://www.google.com/favicon.ico" 
                 alt="Google" 
                 className="w-5 h-5"
               />
               Sign in with Google
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
       </div>
     </div>

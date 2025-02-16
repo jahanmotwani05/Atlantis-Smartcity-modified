@@ -1,155 +1,189 @@
-import React, { Component, ChangeEvent, FormEvent, JSX } from 'react';
-import gsap from 'gsap';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { useNavigate } from 'react-router-dom';
 
-interface LoginState {
-  email: string;
-  password: string;
-  isLoading: boolean;
-  error: string | null;
+interface LoginProps {
+  onClose: () => void;
 }
 
-class Login extends Component<{ onClose?: () => void }, LoginState> {
-  private formRef = React.createRef<HTMLFormElement>();
-  private containerRef = React.createRef<HTMLDivElement>();
+const Login: React.FC<LoginProps> = ({ onClose }) => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  constructor(props: { onClose?: () => void }) {
-    super(props);
-    this.state = {
-      email: '',
-      password: '',
-      isLoading: false,
-      error: null
-    };
-  }
-
-  componentDidMount() {
-    gsap.from(this.containerRef.current, {
-      x: '100%',
-      duration: 0.6,
-      ease: "power3.out"
-    });
-  }
-
-  handleInput = (e: ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value } as Pick<LoginState, keyof LoginState>);
-  }
-
-  handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    this.setState({ isLoading: true, error: null });
-
     try {
-      await signInWithEmailAndPassword(auth, this.state.email, this.state.password);
-      this.props.onClose?.();
-    } catch (error) {
-      this.setState({ 
-        error: 'Invalid credentials. Please try again.',
-        isLoading: false 
-      });
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/home');
+    } catch (err) {
+      setError('Invalid credentials. Please try again.');
+      setTimeout(() => setError(''), 3000);
     }
-  }
+  };
 
-  render(): JSX.Element {
-    const { isLoading, error } = this.state;
+  return (
+    <div className="fixed inset-y-0 right-0 w-1/2 z-50 flex items-center justify-center">
+      {/* Semi-transparent backdrop for login section */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+          animation: 'slideIn 0.6s ease-out'
+        }}
+      ></div>
 
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-end z-50">
-        <div className="w-[450px] h-screen bg-white shadow-2xl p-8 animate-slideIn">
-          <button
-            onClick={this.props.onClose}
-            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+      {/* Login Content */}
+      <div className="relative w-full max-w-md px-12 py-16">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-8 right-8 text-white/70 hover:text-white transition-colors"
+          style={{ 
+            fontSize: '1.5rem',
+            animation: 'fadeIn 0.8s ease-out' 
+          }}
+        >
+          ×
+        </button>
+
+        {/* Title Section */}
+        <div 
+          className="mb-12 text-center"
+          style={{ animation: 'fadeIn 0.8s ease-out' }}
+        >
+          <h2 
+            className="text-4xl font-light text-white mb-3"
+            style={{
+              letterSpacing: '0.3em',
+              textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+            }}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            LOGIN
+          </h2>
+          <p 
+            className="text-white/50 font-light"
+            style={{ letterSpacing: '0.2em' }}
+          >
+            Welcome Back to Atlantis
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6" style={{ animation: 'fadeIn 1s ease-out' }}>
+          {/* Email Input */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="email" 
+              className="block text-white/70 text-sm pl-4"
+              style={{ letterSpacing: '0.1em' }}
+            >
+              EMAIL
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 transition-all duration-300 focus:border-white/30 focus:bg-white/10"
+              style={{ letterSpacing: '0.05em' }}
+              required
+            />
+          </div>
+
+          {/* Password Input */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="password" 
+              className="block text-white/70 text-sm pl-4"
+              style={{ letterSpacing: '0.1em' }}
+            >
+              PASSWORD
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 transition-all duration-300 focus:border-white/30 focus:bg-white/10"
+              style={{ letterSpacing: '0.05em' }}
+              required
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div 
+              className="text-red-300 text-center text-sm px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20"
+              style={{ animation: 'fadeIn 0.3s ease-out' }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full px-6 py-4 mt-6 rounded-full text-white font-light transition-all duration-300 hover:scale-[1.02] focus:outline-none"
+            style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(147, 51, 234, 0.5))',
+              letterSpacing: '0.2em',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            SIGN IN
           </button>
 
-          <form 
-            onSubmit={this.handleSubmit}
-            className="h-full flex flex-col justify-center"
-          >
-            <div className="space-y-6 w-full">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Welcome Back
-                </h2>
-                <p className="mt-2 text-gray-600">
-                  Sign in to continue to Atlantis
-                </p>
-              </div>
-
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    required
-                    placeholder="Enter your email"
-                    onChange={this.handleInput}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    placeholder="Enter your password"
-                    onChange={this.handleInput}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              <button 
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Signing in...</span>
-                  </div>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
-
-              <p className="text-center text-sm text-gray-600">
-                Don't have an account?{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Sign up
-                </a>
-              </p>
+          {/* Footer Links */}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <a
+              href="#"
+              className="text-white/50 text-sm hover:text-white transition-colors"
+              style={{ letterSpacing: '0.1em' }}
+            >
+              Forgot Password?
+            </a>
+            <div className="text-white/30 text-sm" style={{ letterSpacing: '0.1em' }}>
+              Don't have an account? 
+              <a href="#" className="text-white/70 hover:text-white ml-2 transition-colors">
+                Sign Up
+              </a>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
-    );
-  }
-}
+
+      {/* Animations */}
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              transform: translateX(100%);
+            }
+            to {
+              transform: translateX(0);
+            }
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
 
 export default Login;

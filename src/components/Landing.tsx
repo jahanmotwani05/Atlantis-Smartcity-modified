@@ -37,90 +37,130 @@ const Landing: React.FC = () => {
         <div 
           className="text-center mb-16 transform transition-all duration-500 hover:scale-105"
           style={{
-            textShadow: '0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3)',
             animation: 'fadeIn 1.5s ease-out',
           }}
         >
-          <h1 
-            className="text-8xl font-extrabold tracking-widest text-white"
-            style={{
-              letterSpacing: '0.15em',
-            }}
-          >
-            ATLANTIS
-            <span 
-              className="block text-3xl mt-6 font-light text-blue-200"
+          {/* Main Title */}
+          <div className="relative">
+            <h1 
               style={{
-                letterSpacing: '0.3em',
+                fontFamily: 'Poiret One, cursive',
+                fontSize: 'clamp(5rem, 15vw, 9rem)',
+                letterSpacing: '0.1em',
+                fontWeight: '400',
+                lineHeight: '1',
+                background: 'linear-gradient(to right, #fff, #a5f3fc, #fff)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 0 40px rgba(255, 255, 255, 0.3)',
+                transform: 'translateZ(0)',  // For better text rendering
+              }}
+              className="relative z-10"
+            >
+              Atlantis
+            </h1>
+            {/* Echo effect */}
+            <div 
+              style={{
+                fontFamily: 'Poiret One, cursive',
+                fontSize: 'clamp(5rem, 15vw, 9rem)',
+                letterSpacing: '0.1em',
+                fontWeight: '400',
+                lineHeight: '1',
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                color: 'rgba(165, 243, 252, 0.1)',
+                filter: 'blur(8px)',
+                transform: 'translateZ(-1px)',
+                animation: 'glowPulse 3s infinite',
               }}
             >
-              SMART CITY OF THE FUTURE
-            </span>
-          </h1>
+              Atlantis
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <div 
+            style={{
+              fontFamily: 'Michroma, sans-serif',
+              fontSize: 'clamp(0.8rem, 2vw, 1.2rem)',
+              letterSpacing: '0.8em',
+              fontWeight: '400',
+              marginTop: '2rem',
+              background: 'linear-gradient(to right, #60a5fa, #a78bfa)',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+            }}
+            className="uppercase"
+          >
+            Smart City
+          </div>
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-8" style={{ animation: 'fadeIn 2s ease-out' }}>
+        <div 
+          className="flex gap-8" 
+          style={{ 
+            animation: 'fadeIn 2s ease-out',
+            fontFamily: 'Orbitron, sans-serif',
+          }}
+        >
           <button
             onClick={() => setShowLogin(true)}
             className="
               relative px-12 py-5
-              text-white text-lg font-light
+              text-white text-base
               rounded-full
               transition-all duration-500
               hover:scale-105
               focus:outline-none
+              uppercase
             "
             style={{
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              letterSpacing: '0.2em',
-              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+              letterSpacing: '0.3em',
+              fontWeight: '400',
             }}
           >
-            EXPLORE
+            Explore
           </button>
           
           <button
             onClick={() => navigate('/signup')}
             className="
               relative px-12 py-5
-              text-white text-lg font-light
+              text-white text-base
               rounded-full
               transition-all duration-500
               hover:scale-105
               focus:outline-none
+              uppercase
             "
             style={{
               background: 'rgba(59, 130, 246, 0.2)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               border: '1px solid rgba(147, 197, 253, 0.3)',
-              letterSpacing: '0.2em',
-              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+              letterSpacing: '0.3em',
+              fontWeight: '400',
             }}
           >
-            JOIN US
+            Join Us
           </button>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div 
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-          style={{ animation: 'bounce 2s infinite' }}
-        >
-          <div className="w-[30px] h-[50px] border-2 border-white/50 rounded-full p-2">
-            <div className="w-1 h-3 bg-white/70 rounded-full mx-auto"></div>
-          </div>
         </div>
       </div>
 
       {/* Login Form */}
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
 
-      {/* Inline Styles for Animations */}
+      {/* Animations */}
       <style>
         {`
           @keyframes fadeIn {
@@ -134,12 +174,18 @@ const Landing: React.FC = () => {
             }
           }
 
-          @keyframes bounce {
-            0%, 100% {
-              transform: translateY(0) translateX(-50%);
+          @keyframes glowPulse {
+            0% {
+              opacity: 0.3;
+              filter: blur(8px);
             }
             50% {
-              transform: translateY(-20px) translateX(-50%);
+              opacity: 0.6;
+              filter: blur(12px);
+            }
+            100% {
+              opacity: 0.3;
+              filter: blur(8px);
             }
           }
         `}

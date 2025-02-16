@@ -25,6 +25,10 @@ const mapRange = (value: number, inMin: number, inMax: number, outMin: number, o
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 };
 
+// In Home.tsx, add this constant at the top of the file
+const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMUYyOTM3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM2NEI1RjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkF0bGFudGlzIE5ld3M8L3RleHQ+PC9zdmc+';
+
+
 // Update the NewsCard component
 const NewsCard: React.FC<{
   item: NewsItem;
@@ -82,19 +86,17 @@ const NewsCard: React.FC<{
     >
       {/* Updated card content */}
       <div className="relative group">
-        {item.urlToImage && (
-          <div className="aspect-[16/9] w-full overflow-hidden">
-            <img
-              src={item.urlToImage}
-              alt={item.title}
-              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://via.placeholder.com/640x360?text=Smart+City+News';
-              }}
-            />
-          </div>
-        )}
+        <div className="aspect-[16/9] w-full overflow-hidden">
+          <img
+            src={item.urlToImage || FALLBACK_IMAGE}
+            alt={item.title}
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = FALLBACK_IMAGE;
+            }}
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30" />
         <div className="absolute top-4 right-4">
           {item.category !== 'all' && (
@@ -507,12 +509,12 @@ const Home: React.FC = () => {
               </div>
               {selectedNews.urlToImage && (
                 <img 
-                  src={selectedNews.urlToImage} 
+                  src={selectedNews.urlToImage || FALLBACK_IMAGE}
                   alt={selectedNews.title} 
                   className="w-full h-64 object-cover rounded-lg mb-4"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/640x360?text=No+Image+Available';
+                    target.src = FALLBACK_IMAGE;
                   }}
                 />
               )}

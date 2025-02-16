@@ -14,7 +14,6 @@ interface LoginState {
 class Login extends Component<{ onClose?: () => void }, LoginState> {
   private formRef = React.createRef<HTMLFormElement>();
   private containerRef = React.createRef<HTMLDivElement>();
-  private inputRefs: React.RefObject<HTMLDivElement | null>[] = Array(2).fill(null).map(() => React.createRef());
 
   constructor(props: { onClose?: () => void }) {
     super(props);
@@ -27,98 +26,26 @@ class Login extends Component<{ onClose?: () => void }, LoginState> {
   }
 
   componentDidMount() {
-    // Initial animation
-    gsap.set(this.containerRef.current, {
+    gsap.from(this.containerRef.current, {
       x: '100%',
-      opacity: 0
-    });
-
-    gsap.to(this.containerRef.current, {
-      x: '0%',
-      opacity: 1,
-      duration: 0.8,
-      ease: "power3.inOut"
-    });
-
-    // Animate form elements
-    gsap.from(this.formRef.current, {
-      scale: 0.8,
-      opacity: 0,
-      duration: 0.5,
-      delay: 0.4,
-      ease: "back.out(1.7)"
-    });
-
-    // Animate input fields
-    this.inputRefs.forEach((ref, index) => {
-      gsap.from(ref.current, {
-        x: -30,
-        opacity: 0,
-        duration: 0.5,
-        delay: 0.6 + index * 0.1,
-        ease: "power2.out"
-      });
+      duration: 0.6,
+      ease: "power3.out"
     });
   }
 
   handleInput = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    this.setState({ [name]: value } as unknown as Pick<LoginState, keyof LoginState>);
-
-    // Input animation
-    gsap.to(e.target, {
-      keyframes: [
-        { scale: 1.02, duration: 0.1 },
-        { scale: 1, duration: 0.1 }
-      ]
-    });
+    this.setState({ [name]: value } as Pick<LoginState, keyof LoginState>);
   }
 
   handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     this.setState({ isLoading: true, error: null });
 
-    // Animate form submission
-    gsap.to(this.formRef.current, {
-      keyframes: [
-        { scale: 0.95, duration: 0.1 },
-        { scale: 1, duration: 0.1 }
-      ]
-    });
-
     try {
-      // Attempt to sign in with Firebase
-      await signInWithEmailAndPassword(
-        auth,
-        this.state.email,
-        this.state.password
-      );
-
-      // Success animation
-      gsap.to(this.formRef.current, {
-        keyframes: [
-          { boxShadow: '0 0 30px rgba(6,182,212,0.5)', duration: 0.3 },
-          { boxShadow: 'none', duration: 0.3 }
-        ]
-      });
-
-      // Close login form after successful authentication
-      setTimeout(() => {
-        this.props.onClose?.();
-      }, 1000);
-
+      await signInWithEmailAndPassword(auth, this.state.email, this.state.password);
+      this.props.onClose?.();
     } catch (error) {
-      // Error animation
-      gsap.to(this.formRef.current, {
-        keyframes: [
-          { x: -10, duration: 0.1 },
-          { x: 10, duration: 0.1 },
-          { x: -5, duration: 0.1 },
-          { x: 5, duration: 0.1 },
-          { x: 0, duration: 0.1 }
-        ]
-      });
-
       this.setState({ 
         error: 'Invalid credentials. Please try again.',
         isLoading: false 
@@ -132,11 +59,11 @@ class Login extends Component<{ onClose?: () => void }, LoginState> {
     return (
       <div 
         ref={this.containerRef}
-        className="fixed top-0 right-0 w-1/2 h-screen bg-black/80 backdrop-blur-xl border-l border-cyan-500/30 z-30"
+        className="fixed top-0 right-0 w-[450px] h-screen bg-white shadow-2xl z-50"
       >
         <button
           onClick={this.props.onClose}
-          className="absolute top-8 right-8 text-white/60 hover:text-white transition-colors"
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -146,57 +73,81 @@ class Login extends Component<{ onClose?: () => void }, LoginState> {
         <form 
           ref={this.formRef}
           onSubmit={this.handleSubmit}
-          className="h-full flex flex-col justify-center px-16"
+          className="h-full flex flex-col justify-center px-12"
         >
-          <h2 className="text-4xl font-bold mb-12 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-            Welcome Back
-          </h2>
-
-          {error && (
-            <div className="mb-6 py-3 px-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-              {error}
+          <div className="space-y-6 w-full">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">
+                Welcome Back
+              </h2>
+              <p className="mt-2 text-gray-600">
+                Sign in to continue to Atlantis
+              </p>
             </div>
-          )}
 
-          <div className="space-y-8">
-            {['email', 'password'].map((field, index) => (
-              <div 
-                key={field} 
-                ref={this.inputRefs[index]}
-                className="group relative"
-              >
-                <input
-                  type={field === 'password' ? 'password' : 'text'}
-                  name={field}
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  onChange={this.handleInput}
-                  className="w-full px-6 py-4 bg-white/5 border-2 border-blue-500/20 rounded-xl text-white placeholder-blue-300/30 focus:outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20 transition-all duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm">
+                {error}
               </div>
-            ))}
-          </div>
+            )}
 
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="group relative mt-12 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl text-white font-bold tracking-wider transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-400/30 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-2">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="Enter your email"
+                  onChange={this.handleInput}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="Enter your password"
+                  onChange={this.handleInput}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isLoading ? (
-                <>
+                <div className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  <span className="tracking-widest">AUTHENTICATING</span>
-                </>
+                  <span>Signing in...</span>
+                </div>
               ) : (
-                <span className="tracking-widest">LOGIN</span>
+                'Sign in'
               )}
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
-          </button>
+            </button>
+
+            <p className="text-center text-sm text-gray-600">
+              Don't have an account?{' '}
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                Sign up
+              </a>
+            </p>
+          </div>
         </form>
       </div>
     );

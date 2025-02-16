@@ -25,7 +25,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      navigate('/home'); // Changed to '/home'
     } catch (err: any) {
       switch (err.code) {
         case 'auth/invalid-email':
@@ -52,7 +52,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      navigate('/dashboard');
+      navigate('/home'); // Changed to '/home'
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign in cancelled');
@@ -65,20 +65,28 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-1/2 z-50 animate-slideIn">
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-        }}
-      >
+    <div className="fixed inset-y-0 right-0 w-1/2 z-50" style={{
+      animation: 'slideIn 0.5s ease-out forwards',
+    }}>
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
+
+      <div className="absolute inset-0 bg-gradient-to-br from-black/80 to-black/90 backdrop-blur-xl border-l border-white/10">
         <button
           onClick={onClose}
-          className="absolute top-8 right-8 text-white/70 hover:text-white transition-colors"
-          style={{ fontSize: '24px' }}
+          className="absolute top-8 right-8 text-2xl text-white/70 hover:text-white transition-colors"
         >
           ×
         </button>

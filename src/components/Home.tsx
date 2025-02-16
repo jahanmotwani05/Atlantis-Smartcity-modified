@@ -42,8 +42,7 @@ const Home: React.FC = () => {
 
   const fetchNews = async () => {
     try {
-      // Replace with your actual NewsAPI key
-      const API_KEY = 'your-news-api-key';
+      const API_KEY = import.meta.env.VITE_NEWS_API_KEY; // Get API key from environment variables
       const response = await axios.get(
         `https://newsapi.org/v2/everything?q=smart+city+technology&apiKey=${API_KEY}`
       );
@@ -86,15 +85,13 @@ const Home: React.FC = () => {
     let score = 0;
     const text = `${article.title} ${article.description}`.toLowerCase();
     
-    // Keywords relevance
     const keywords = ['smart city', 'technology', 'innovation', 'urban', 'development'];
     keywords.forEach(keyword => {
       if (text.includes(keyword)) score += 0.2;
     });
 
-    // Recency bonus (newer articles get higher scores)
     const daysOld = (new Date().getTime() - new Date(article.publishedAt).getTime()) / (1000 * 3600 * 24);
-    score += Math.max(0, 1 - daysOld / 30); // Bonus decreases with age, max 30 days
+    score += Math.max(0, 1 - daysOld / 30);
 
     return Math.min(1, score);
   };
@@ -117,7 +114,6 @@ const Home: React.FC = () => {
             <div className="flex items-center space-x-8">
               <span className="text-2xl text-white font-light">Atlantis</span>
               
-              {/* Navigation Items */}
               <div className="hidden md:flex space-x-4">
                 {navItems.map((item) => (
                   <button
@@ -143,7 +139,7 @@ const Home: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-20 px-4 max-w-7xl mx-auto">
+      <main className="container mx-auto pt-20 px-4">
         {/* Category Filters */}
         <div className="mb-8 flex space-x-4 overflow-x-auto pb-2">
           {categories.map((category) => (

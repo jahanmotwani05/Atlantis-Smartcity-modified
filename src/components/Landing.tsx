@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Login from './Login';
+import backgroundVideo from '../assets/AdobeStock_303072233.mp4';
 
-const Landing = () => {
+const Landing: React.FC = () => {
   const navigate = useNavigate();
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState<boolean>(false);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -16,14 +17,22 @@ const Landing = () => {
         playsInline
         className="absolute top-0 left-0 min-h-screen w-full object-cover z-0"
       >
-        <source src="/assets/AdobeStock_303072233.mp4" type="video/mp4" />
+        <source src={backgroundVideo} type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10"></div>
 
       {/* Content */}
-      <div className={`relative z-20 flex min-h-screen flex-col items-center justify-center transition-transform duration-500 ${showLogin ? 'translate-x-[-25%]' : ''}`}>
+      <div 
+        className={`
+          relative z-20 
+          flex min-h-screen flex-col items-center justify-center 
+          transition-transform duration-500 
+          ${showLogin ? 'translate-x-[-25%]' : ''}
+        `}
+      >
         <h1 className="mb-12 text-7xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
           ATLANTIS
           <span className="block text-3xl mt-4 text-center bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text">

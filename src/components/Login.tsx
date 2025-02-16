@@ -1,195 +1,138 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  GoogleAuthProvider,
-  AuthError 
-} from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase/config';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
-interface LoginProps {
-  onClose: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onClose }) => {
+const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+    setLoading(true);
     setError('');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Update user's last login time in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        lastLogin: serverTimestamp(),
-        email: userCredential.user.email,
-      }, { merge: true });
-
-      onClose();
-      navigate('/home');
-    } catch (err) {
-      const authError = err as AuthError;
-      switch (authError.code) {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      switch (err.code) {
+        case 'auth/invalid-email':
+          setError('Invalid email address');
+          break;
         case 'auth/user-not-found':
           setError('No account found with this email');
           break;
         case 'auth/wrong-password':
           setError('Incorrect password');
           break;
-        case 'auth/invalid-email':
-          setError('Invalid email address');
-          break;
         default:
-          setError('Failed to sign in. Please try again.');
+          setError('Failed to sign in');
       }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
+    setLoading(true);
     setError('');
 
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      // Update or create user document in Firestore
-      await setDoc(doc(db, 'users', result.user.uid), {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-        lastLogin: serverTimestamp(),
-        createdAt: serverTimestamp(),
-      }, { merge: true });
-
-      onClose();
-      navigate('/home');
-    } catch (err) {
-      const authError = err as AuthError;
-      if (authError.code === 'auth/popup-closed-by-user') {
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign in cancelled');
       } else {
         setError('Failed to sign in with Google');
       }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-1/2 z-50">
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-        }}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-8 right-8 text-white/70 hover:text-white transition-colors"
-        >
-          ×
-        </button>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+            Sign in to Atlantis
+          </h2>
+        </div>
 
-        <div className="relative w-full max-w-md mx-auto px-12 py-16">
-          <div className="mb-12 text-center">
-            <h2 className="text-4xl font-light text-white mb-3">
-              Welcome Back
-            </h2>
-            <p className="text-white/50">Sign in to continue</p>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-center">
+            {error}
           </div>
+        )}
 
-          {error && (
-            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-red-400 text-center text-sm">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleEmailLogin} className="space-y-6">
+        <form onSubmit={handleEmailLogin} className="mt-8 space-y-6">
+          <div className="space-y-4">
             <div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 focus:border-blue-500/50 transition-colors"
-                disabled={isLoading}
-                required
+                disabled={loading}
+                className="bg-white/5 w-full px-6 py-4 rounded-lg text-white border border-white/10 focus:border-blue-500/50 focus:outline-none transition-colors"
+                placeholder="Email address"
               />
             </div>
-
             <div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                className="bg-white/5 w-full px-6 py-4 rounded-lg text-white border border-white/10 focus:border-blue-500/50 focus:outline-none transition-colors"
                 placeholder="Password"
-                className="w-full px-6 py-4 bg-white/5 rounded-full text-white placeholder-white/30 outline-none border border-white/10 focus:border-blue-500/50 transition-colors"
-                disabled={isLoading}
-                required
               />
             </div>
+          </div>
 
+          <div>
             <button
               type="submit"
-              disabled={isLoading}
-              className={`
-                w-full px-6 py-4 rounded-full text-white font-light
-                transition-all duration-300 
-                ${isLoading 
+              disabled={loading}
+              className={`w-full py-4 rounded-lg text-white font-medium transition-all duration-300 ${
+                loading 
                   ? 'bg-blue-500/30 cursor-not-allowed' 
-                  : 'bg-blue-500/50 hover:bg-blue-500/60'
-                }
-              `}
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-black text-white/30">Or continue with</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full px-6 py-4 rounded-full text-white font-light bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-              Sign in with Google
-            </button>
-          </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-white/30">
-              Don't have an account?{' '}
-              <button
-                onClick={() => navigate('/signup')}
-                className="text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Sign up
-              </button>
-            </p>
           </div>
+        </form>
+
+        <div>
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className={`w-full py-4 rounded-lg text-white font-medium border transition-all duration-300 ${
+              loading 
+                ? 'border-white/20 bg-white/5 cursor-not-allowed' 
+                : 'border-white/10 bg-white/10 hover:bg-white/20'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-3">
+              <img 
+                src="https://www.google.com/favicon.ico" 
+                alt="Google" 
+                className="w-5 h-5"
+              />
+              Sign in with Google
+            </div>
+          </button>
         </div>
       </div>
     </div>

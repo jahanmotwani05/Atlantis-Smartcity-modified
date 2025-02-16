@@ -27,7 +27,7 @@ const Home: React.FC = () => {
   const navItems = [
     { name: 'Events', icon: '🎉', path: '/events' },
     { name: 'Emergency', icon: '🚨', path: '/emergency' },
-    { name: 'Announcements', icon: '📢', path: '/announcements' },
+    { name: 'Announcements', icon: '📢', path: '/announcement' },
     { name: 'Transportation', icon: '🚗', path: '/transport' },
     { name: 'Alerts', icon: '⚠️', path: '/alerts' },
     { name: 'Ambulance', icon: '🚑', path: '/ambulance' },

@@ -298,7 +298,7 @@ const Home: React.FC = () => {
       setLoading(true);
       const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
       
-      // Modified to focus on Indian news and problems
+      // Add page and pageSize parameters
       const queries = [
         'India urban development',
         'India smart city',
@@ -308,16 +308,35 @@ const Home: React.FC = () => {
       
       const newsPromises = queries.map(query => 
         axios.get(
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&apiKey=${API_KEY}&sortBy=publishedAt&language=en`
+          `https://newsapi.org/v2/everything`, {
+            params: {
+              q: query,
+              apiKey: API_KEY,
+              sortBy: 'publishedAt',
+              language: 'en',
+              pageSize: 10, // Limit results per query
+              page: 1 // Start with first page
+            }
+          }
         )
       );
 
       const responses = await Promise.all(newsPromises);
-      const allArticles = responses.flatMap(response => response.data.articles);
+      
+      // Log the API response for debugging
+      console.log('API Responses:', responses.map(r => r.data));
 
-      // Remove duplicates based on title
+      const allArticles = responses.flatMap(response => 
+        response.data.articles || []
+      );
+
+      // Remove duplicates and null values
       const uniqueArticles = Array.from(
-        new Map(allArticles.map(article => [article.title, article])).values()
+        new Map(
+          allArticles
+            .filter(article => article && article.title)
+            .map(article => [article.title, article])
+        ).values()
       );
 
       const processedNews = uniqueArticles
@@ -326,15 +345,14 @@ const Home: React.FC = () => {
           category: categorizeNews(article),
           location: detectLocation(article)
         }))
-        .slice(0, 30); // Limit to 30 articles for better performance
+        .slice(0, 30);
 
       setNews(processedNews);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching news:', error);
-      setLoading(false);
-      // Add some sample news for testing if API fails
       setNews(getSampleNews());
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -456,8 +474,9 @@ const Home: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <p className="text-gray-400">Loading news...</p>
           </div>
         ) : filteredNews.length > 0 ? (
           <>
@@ -482,7 +501,12 @@ const Home: React.FC = () => {
 
             <div className="mt-8 flex justify-center space-x-4">
               <button
-                onClick={() => setActiveIndex(prev => (prev - 1 + filteredNews.length) % filteredNews.length)}
+                onClick={() => {
+                  setActiveIndex((prev) => {
+                    const newIndex = prev - 1;
+                    return newIndex < 0 ? filteredNews.length - 1 : newIndex;
+                  });
+                }}
                 className="group px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full transition-colors flex items-center space-x-2"
               >
                 <svg 
@@ -491,18 +515,15 @@ const Home: React.FC = () => {
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M15 19l-7-7 7-7" 
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 <span>Previous</span>
               </button>
               
               <button
-                onClick={() => setActiveIndex(prev => (prev + 1) % filteredNews.length)}
+                onClick={() => {
+                  setActiveIndex((prev) => (prev + 1) % filteredNews.length);
+                }}
                 className="group px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full transition-colors flex items-center space-x-2"
               >
                 <span>Next</span>
@@ -512,12 +533,7 @@ const Home: React.FC = () => {
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M9 5l7 7-7 7" 
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>

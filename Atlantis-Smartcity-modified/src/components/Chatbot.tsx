@@ -74,24 +74,72 @@ const Chatbot: React.FC = () => {
   };
 
   const getAIResponse = async (userInput: string) => {
+    console.log('Starting API request...');
+    
     // First check FAQs
     const faqResponse = checkFAQs(userInput);
-    if (faqResponse) return faqResponse;
+    if (faqResponse) {
+      console.log('FAQ match found, returning response without API call');
+      return faqResponse;
+    }
 
-    // Simple mock response generation
-    const mockResponses = [
-      "Our smart city is designed to improve urban living through innovative technologies.",
-      "Atlantis focuses on sustainable urban solutions, including smart transportation and energy management.",
-      "We're committed to creating more efficient and connected urban environments.",
-      "Our smart city platform integrates various services to enhance citizen experiences.",
-      "Transportation, waste management, and energy systems are key focus areas of our smart city initiative."
-    ];
+    try {
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      if (!apiKey) {
+        throw new Error('OpenAI API key not found. Please check your .env file.');
+      }
 
-    // Simulate async response with a random delay
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "You are an AI assistant for Atlantis Smart City. Provide concise, helpful information about the city's services and features. Keep responses under 100 words."
+            },
+            {
+              role: "user",
+              content: userInput
+            }
+          ],
+          max_tokens: 150,
+          temperature: 0.7,
+          presence_penalty: 0.6,
+          frequency_penalty: 0.5
+        })
+      });
 
-    // Return a random mock response
-    return mockResponses[Math.floor(Math.random() * mockResponses.length)];
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('API response received:', data);
+
+      if (!data.choices || !data.choices[0]?.message?.content) {
+        throw new Error('Invalid response format from OpenAI API');
+      }
+
+      return data.choices[0].message.content.trim();
+
+    } catch (error) {
+      console.error('API request failed:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('API key')) {
+          return "Configuration error: API key not found. Please contact support.";
+        }
+        if (error.message.includes('429')) {
+          return "I'm receiving too many requests right now. Please try again in a moment.";
+        }
+      }
+      throw error;
+    }
   };
 
   const handleSend = async () => {

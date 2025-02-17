@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from './Navbar';  // Add this import
 import AnimatedTagline from './AnimatedTagline';
+
+gsap.registerPlugin(ScrollTrigger);
+
 interface NewsItem {
   title: string;
   description: string;
@@ -32,24 +37,27 @@ const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaH
 // Update the NewsCard component
 const NewsCard: React.FC<{
   item: NewsItem;
-  onClick: () => void;
-}> = ({ item, onClick }) => {
+  index: number;
+}> = ({ item, index }) => {
   return (
-    <motion.div
-      whileHover={{ 
-        scale: 1.02,
-        boxShadow: '0 0 30px rgba(59,130,246,0.4)',
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 30
-      }}
-      onClick={onClick}
-      className="bg-gray-800/90 backdrop-blur-sm rounded-xl overflow-hidden
-                 border border-gray-700/50 h-full
-                 transition-all duration-300 ease-out
-                 hover:border-blue-500/30"
+    <div
+      className={`
+        news-card
+        flex-shrink-0
+        w-[400px]
+        bg-gray-800/90
+        backdrop-blur-sm
+        rounded-xl
+        overflow-hidden
+        border
+        border-gray-700/50
+        shadow-[0_0_20px_rgba(0,0,0,0.3)]
+        transition-all
+        duration-300
+        ease-out
+        hover:shadow-[0_0_30px_rgba(59,130,246,0.4)]
+        hover:border-blue-500/30
+      `}
     >
       <div className="relative group">
         <div className="aspect-[16/9] w-full overflow-hidden">
@@ -63,19 +71,17 @@ const NewsCard: React.FC<{
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30" />
-        <div className="absolute top-4 right-4">
-          {item.category !== 'all' && (
-            <span className="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full 
-                           backdrop-blur-sm border border-blue-500/20">
-              {item.category}
-            </span>
-          )}
+        <div className="p-4">
+          <h3 className="font-['Syncopate'] text-lg font-semibold text-white mb-2 tracking-wide">
+            {item.title}
+          </h3>
+          <p className="text-gray-300 text-sm line-clamp-3">{item.description}</p>
+          <div className="mt-4 text-sm text-gray-400">
+            {new Date(item.publishedAt).toLocaleDateString()}
+          </div>
         </div>
       </div>
-
-      {/* Rest of your card content remains the same */}
-    </motion.div>
+    </div>
   );
 };
 
@@ -197,6 +203,44 @@ const CarouselContainer: React.FC<{
   );
 };
  
+const NewsHeading: React.FC = () => {
+  const headingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (headingRef.current) {
+      gsap.fromTo(headingRef.current,
+        {
+          y: 50,
+          opacity: 0
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          scrollTrigger: {
+            trigger: headingRef.current,
+            start: "top center+=200",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    }
+  }, []);
+
+  return (
+    <div 
+      ref={headingRef}
+      className="text-center mb-12"
+    >
+      <h2 className="font-['Syncopate'] text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent 
+                     bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 tracking-wider uppercase">
+        Latest News
+      </h2>
+      <div className="w-24 h-1 bg-blue-500/50 mx-auto mt-4 rounded-full"></div>
+    </div>
+  );
+};
+
 const Home: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -204,6 +248,8 @@ const Home: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   // Add auth listener
   useEffect(() => {
@@ -338,6 +384,60 @@ const Home: React.FC = () => {
   const filteredNews = news.filter(
     item => activeCategory === 'all' || item.category === activeCategory
   );
+
+  useEffect(() => {
+    if (containerRef.current && trackRef.current && filteredNews.length > 0) {
+      // Reset any existing ScrollTrigger instances
+      ScrollTrigger.getAll().forEach(st => st.kill());
+      
+      const track = trackRef.current;
+      const cards = track.children;
+      const totalWidth = (cards.length * 420) - window.innerWidth; // 400px card + 20px gap
+  
+      gsap.to(track, {
+        x: -totalWidth,
+        ease: "none",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          end: `+=${totalWidth}`,
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            // Optional: Update card opacity based on position
+            Array.from(cards).forEach((card, i) => {
+              const progress = self.progress;
+              const cardProgress = (i / (cards.length - 1));
+              const distance = Math.abs(progress - cardProgress);
+              gsap.to(card, {
+                opacity: 1 - Math.min(distance * 2, 0.6),
+                duration: 0.2
+              });
+            });
+          }
+        }
+      });
+    }
+  }, [filteredNews]);
+ 
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.to(".news-container", {
+        y: 0,
+        opacity: 1,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top center",
+          end: "bottom center",
+          toggleActions: "play none none reverse",
+        },
+      });
+    }
+  }, [filteredNews.length]);
  
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -421,6 +521,9 @@ const Home: React.FC = () => {
               </button>
             ))}
           </div>
+          
+          {/* Add the NewsHeading component */}
+          <NewsHeading />
         </div>
 
         {loading ? (
@@ -429,20 +532,36 @@ const Home: React.FC = () => {
             <p className="text-gray-400">Loading news...</p>
           </div>
         ) : filteredNews.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
-            {filteredNews.map((item, index) => (
-              <NewsCard
-                key={item.title + index}
-                item={item}
-                onClick={() => setSelectedNews(item)}
-              />
-            ))}
+          <div ref={containerRef} className="relative w-full min-h-screen overflow-hidden">
+            <div 
+              ref={trackRef}
+              className="absolute top-1/2 left-0 -translate-y-1/2 flex gap-5 pl-[10vw]"
+              style={{ 
+                willChange: 'transform',
+                paddingRight: '10vw' // Add right padding for last card
+              }}
+            >
+              {filteredNews.map((item, index) => (
+                <NewsCard
+                  key={item.title + index}
+                  item={item}
+                  index={index}
+                />
+              ))}
+            </div>
+            
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+              Scroll to explore more news
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64">
             <p className="text-gray-400 text-lg">No news found for this category</p>
           </div>
         )}
+
+        {/* Required for scrolling - adjust height based on content */}
+        <div style={{ height: `${filteredNews.length * 100}vh` }} />
       </main>
 
       {/* Update modal background */}
@@ -451,7 +570,9 @@ const Home: React.FC = () => {
           <div className="container mx-auto px-4 py-16">
             <div className="bg-gray-900/80 backdrop-blur-md rounded-lg p-6 max-w-4xl mx-auto border border-gray-800">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-white">{selectedNews.title}</h2>
+                <h2 className="font-['Syncopate'] text-2xl font-bold text-white tracking-wide">
+                  {selectedNews.title}
+                </h2>
                 <button onClick={() => setSelectedNews(null)} className="text-gray-400 hover:text-white">
                   ✕
                 </button>
@@ -486,5 +607,4 @@ const Home: React.FC = () => {
     </div>
   );
 };
- 
-export default Home;
+ export default Home;

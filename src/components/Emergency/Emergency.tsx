@@ -5,6 +5,12 @@ import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/ap
 import { GOOGLE_MAPS_API_KEY, EMERGENCY_CONTACT, mapStyles } from './constants';
 import Navbar from '..//Navbar';
 
+interface FormData {
+  name: string;
+  email: string;
+  message: string;
+}
+
 interface Place {
   place_id: string;
   name: string;
@@ -137,7 +143,17 @@ const Emergency: React.FC = () => {
       <Navbar currentTime={currentTime} currentUser={currentUser} />
 
       <main className="container mx-auto px-4 pt-20">
+        {/* Title Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Atlantis Women's Safety</h1>
+          <p className="text-gray-400">24/7 Emergency Support & Assistance</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {currentTime} UTC | User: {currentUser}
+          </p>
+        </div>
+
         <div className="grid gap-6 mb-6">
+          {/* Emergency Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -160,6 +176,7 @@ const Emergency: React.FC = () => {
             </motion.button>
           </div>
 
+          {/* Alert Messages */}
           {(showLocationAlert || showEmergencyAlert) && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -177,6 +194,7 @@ const Emergency: React.FC = () => {
             </motion.div>
           )}
 
+          {/* Map Section */}
           <div className="bg-gray-800 rounded-lg p-4">
             <h2 className="text-xl text-white mb-4">Your Location & Nearby Emergency Services</h2>
             <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={['places']}>
@@ -246,6 +264,7 @@ const Emergency: React.FC = () => {
             </LoadScript>
           </div>
 
+          {/* Emergency Services Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {['Police', 'Ambulance', 'Fire'].map((service, index) => (
               <motion.div
@@ -267,6 +286,91 @@ const Emergency: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* About Us Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-gray-800 p-6 rounded-lg mb-6"
+        >
+          <h2 className="text-2xl font-semibold text-white mb-4">About Us</h2>
+          <p className="text-gray-300">
+            Atlantis Women's Safety Initiative provides 24/7 emergency support and protection services
+            for women in distress. Our team of trained professionals ensures immediate response and
+            assistance whenever needed.
+          </p>
+        </motion.div>
+
+        {/* Contact & Location Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-gray-800 p-6 rounded-lg"
+          >
+            <h2 className="text-2xl font-semibold text-white mb-4">Contact Us</h2>
+            <div className="space-y-2 text-gray-300">
+              <p>Emergency: 1091 (Toll-Free)</p>
+              <p>Helpline: {EMERGENCY_CONTACT}</p>
+              <p>Email: help@atlantiswomensafety.org</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-gray-800 p-6 rounded-lg"
+          >
+            <h2 className="text-2xl font-semibold text-white mb-4">Office Address</h2>
+            <address className="text-gray-300 not-italic">
+              Atlantis Women's Safety Center<br />
+              123 Safety Street, Koramangala<br />
+              Bangalore, Karnataka - 560034<br />
+              India
+            </address>
+          </motion.div>
+        </div>
+
+        {/* Email Us Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-gray-800 p-6 rounded-lg"
+        >
+          <h2 className="text-2xl font-semibold text-white mb-4">Email Us</h2>
+          <form className="space-y-4">
+            <div>
+              <label className="block text-gray-300 mb-2">Name</label>
+              <input
+                type="text"
+                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                placeholder="Your Name"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Email</label>
+              <input
+                type="email"
+                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                placeholder="Your Email"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Message</label>
+              <textarea
+                rows={4}
+                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                placeholder="Your Message"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+            >
+              Send Message
+            </button>
+          </form>
+        </motion.div>
       </main>
     </div>
   );

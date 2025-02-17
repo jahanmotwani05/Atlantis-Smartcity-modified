@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { auth } from '../../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Navbar from './Navbar';  // Add this import
+import Navbar from '../Navbar';  // Add this import
 import AnimatedTagline from './AnimatedTagline';
+import Footer from './Footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -86,122 +87,8 @@ const NewsCard: React.FC<{
 };
 
 // Add circular positions constants
-const CIRCULAR_POSITIONS = [
-  { rotateY: 0, translateZ: 300, opacity: 1, scale: 1 },
-  { rotateY: 72, translateZ: 250, opacity: 0.7, scale: 0.9 },
-  { rotateY: 144, translateZ: 200, opacity: 0.5, scale: 0.8 },
-  { rotateY: 216, translateZ: 150, opacity: 0.4, scale: 0.7 },
-  { rotateY: 288, translateZ: 100, opacity: 0.3, scale: 0.6 },
-];
  
 // Update the CarouselContainer component
-const CarouselContainer: React.FC<{
-  news: NewsItem[];
-  onSelectNews: (news: NewsItem) => void;
-}> = ({ news, onSelectNews }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleNews, setVisibleNews] = useState(news.slice(0, 5));
- 
-  useEffect(() => {
-    setVisibleNews(news.slice(currentIndex, currentIndex + 5));
-  }, [currentIndex, news]);
- 
-  // Auto-scroll effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % Math.max(0, news.length - 4));
-    }, 3000);
- 
-    return () => clearInterval(interval);
-  }, [news.length]);
- 
-  // Add keyboard navigation
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        setCurrentIndex((prev) => (prev + 1) % Math.max(0, news.length - 4));
-      } else if (e.key === 'ArrowLeft') {
-        setCurrentIndex((prev) => 
-          prev === 0 ? Math.max(0, news.length - 5) : prev - 1
-        );
-      }
-    };
- 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [news.length]);
- 
-  return (
-    <div className="relative h-[600px] flex justify-center items-center">
-      <div className="relative w-[600px] h-[400px] perspective-1000">
-        <AnimatePresence>
-          {visibleNews.map((item, index) => {
-            const pos = CIRCULAR_POSITIONS[index];
-            return (
-              <motion.div
-                key={`${item.title}-${index}`}
-                className="absolute w-full h-full bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer"
-                initial={{ opacity: 0 }}
-                animate={{
-                  rotateY: pos.rotateY,
-                  translateZ: pos.translateZ,
-                  opacity: pos.opacity,
-                  scale: pos.scale,
-                }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
-                onClick={() => index === 0 && onSelectNews(item)}
-                style={{
-                  transformStyle: "preserve-3d",
-                  transformPerspective: 1000,
-                  filter: index === 0 ? "none" : "blur(2px)",
-                }}
-              >
-                <div className="relative h-full">
-                  {item.urlToImage && (
-                    <div className="h-1/2 overflow-hidden">
-                      <img
-                        src={item.urlToImage}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/640x360?text=No+Image+Available';
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="p-6 h-1/2">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-blue-400 text-sm">{item.source.name}</span>
-                      {item.location && (
-                        <span className="text-emerald-400 text-sm">📍 {item.location}</span>
-                      )}
-                    </div>
-                    <h3 className="text-xl text-white font-semibold mb-2 line-clamp-2">{item.title}</h3>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
- 
-      {/* Navigation dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {Array.from({ length: Math.ceil(news.length / 5) }).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index * 5)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              Math.floor(currentIndex / 5) === index ? 'bg-blue-500 w-4' : 'bg-gray-400'
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
  
 const NewsHeading: React.FC = () => {
   const headingRef = useRef<HTMLDivElement>(null);
@@ -532,7 +419,7 @@ const Home: React.FC = () => {
             <p className="text-gray-400">Loading news...</p>
           </div>
         ) : filteredNews.length > 0 ? (
-          <div ref={containerRef} className="relative w-full min-h-screen overflow-hidden">
+          <div ref={containerRef} className="relative w-full h-[80vh] overflow-hidden mb-16">
             <div 
               ref={trackRef}
               className="absolute top-1/2 left-0 -translate-y-1/2 flex gap-5 pl-[10vw]"
@@ -550,7 +437,7 @@ const Home: React.FC = () => {
               ))}
             </div>
             
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50 text-sm">
               Scroll to explore more news
             </div>
           </div>
@@ -559,9 +446,6 @@ const Home: React.FC = () => {
             <p className="text-gray-400 text-lg">No news found for this category</p>
           </div>
         )}
-
-        {/* Required for scrolling - adjust height based on content */}
-        <div style={{ height: `${filteredNews.length * 100}vh` }} />
       </main>
 
       {/* Update modal background */}
@@ -604,6 +488,8 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+      
+      <Footer />
     </div>
   );
 };

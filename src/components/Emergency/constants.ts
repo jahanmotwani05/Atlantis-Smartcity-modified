@@ -1,4 +1,4 @@
-export const GOOGLE_MAPS_API_KEY = 'AIzaSyAzR6pmtDsbTT6NsSToZWebhflHEQxzWcE';
+export const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 export const EMERGENCY_CONTACT = '+917980268239';
 export const mapStyles = [
   {

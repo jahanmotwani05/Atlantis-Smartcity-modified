@@ -23,7 +23,7 @@ const Announcement: React.FC = () => {
   const fetchAnnouncements = async () => {
     try {
       // Replace with your API endpoint
-      const response = await axios.get('/api/announcements');
+      const response = await axios.get<Announcement[]>('/api/announcements');
       setAnnouncements(response.data);
       setLoading(false);
     } catch (error) {

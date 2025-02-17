@@ -4,7 +4,6 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './Navbar';
 
 interface NewsItem {
   title: string;
@@ -24,6 +23,10 @@ interface NewsItem {
 const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 };
+
+// In Home.tsx, add this constant at the top of the file
+const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMUYyOTM3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM2NEI1RjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkF0bGFudGlzIE5ld3M8L3RleHQ+PC9zdmc+';
+
 
 // Update the NewsCard component
 const NewsCard: React.FC<{
@@ -82,19 +85,17 @@ const NewsCard: React.FC<{
     >
       {/* Updated card content */}
       <div className="relative group">
-        {item.urlToImage && (
-          <div className="aspect-[16/9] w-full overflow-hidden">
-            <img
-              src={item.urlToImage}
-              alt={item.title}
-              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://via.placeholder.com/640x360?text=Smart+City+News';
-              }}
-            />
-          </div>
-        )}
+        <div className="aspect-[16/9] w-full overflow-hidden">
+          <img
+            src={item.urlToImage || FALLBACK_IMAGE}
+            alt={item.title}
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = FALLBACK_IMAGE;
+            }}
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30" />
         <div className="absolute top-4 right-4">
           {item.category !== 'all' && (
@@ -279,6 +280,15 @@ const Home: React.FC = () => {
   const [currentTime] = useState('2025-02-16 12:01:27');
   const [currentUser] = useState('abhinavx04');
 
+  const navItems = [
+    { name: 'Events', icon: '🎉', path: '/events' },
+    { name: 'Emergency', icon: '🚨', path: '/emergency' },
+    { name: 'Announcements', icon: '📢', path: '/announcements' },
+    { name: 'Transportation', icon: '🚗', path: '/transport' },
+    { name: 'Alerts', icon: '⚠️', path: '/alerts' },
+    { name: 'Ambulance', icon: '🚑', path: '/ambulance' },
+  ];
+
   const categories = ['all', 'city', 'health', 'transport', 'emergency', 'events'];
 
   useEffect(() => {
@@ -396,6 +406,15 @@ const Home: React.FC = () => {
     return 'India';
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   const filteredNews = news.filter(
     item => activeCategory === 'all' || item.category === activeCategory
   );
@@ -405,7 +424,40 @@ const Home: React.FC = () => {
       {/* Background grid effect */}
       <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:40px_40px] opacity-10" />
       
-      <Navbar currentTime={currentTime} currentUser={currentUser} />
+      <nav className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-8">
+              <span className="text-2xl text-white font-light">Atlantis</span>
+              <div className="hidden md:flex space-x-4">
+                {navItems.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => navigate(item.path)}
+                    className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:block">
+                <span className="text-gray-400 text-sm">{currentTime} UTC</span>
+                <span className="text-gray-400 text-sm ml-4">{currentUser}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       <main className="pt-20">
         <div className="container mx-auto px-4">
@@ -513,12 +565,12 @@ const Home: React.FC = () => {
               </div>
               {selectedNews.urlToImage && (
                 <img 
-                  src={selectedNews.urlToImage} 
+                  src={selectedNews.urlToImage || FALLBACK_IMAGE}
                   alt={selectedNews.title} 
                   className="w-full h-64 object-cover rounded-lg mb-4"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/640x360?text=No+Image+Available';
+                    target.src = FALLBACK_IMAGE;
                   }}
                 />
               )}

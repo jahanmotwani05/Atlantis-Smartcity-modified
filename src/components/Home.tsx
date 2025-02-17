@@ -37,17 +37,23 @@ const NewsCard: React.FC<{
   total: number;
   onClick: () => void;
 }> = ({ item, index, active, total, onClick }) => {
-  const RADIUS = 800;
-  const ANGLE = 360 / Math.min(total, 8);
-  const rotation = (index - active) * ANGLE;
- 
+  // Calculate relative index for infinite rotation
+  const relativeIndex = ((index - active) % total + total) % total;
+  
+  // Reduce RADIUS to bring cards closer together
+  const RADIUS = 800; // Reduced from 1200
+  const ANGLE = 45; // Fixed angle between cards (reduced from 360/total)
+  const rotation = relativeIndex * ANGLE;
+
+  // Prevent cards from going behind center by adjusting z calculation
   const angleRad = (rotation * Math.PI) / 180;
   const x = RADIUS * Math.sin(angleRad);
-  const z = RADIUS * Math.cos(angleRad) - RADIUS;
- 
+  const z = Math.max(-RADIUS + 100, RADIUS * Math.cos(angleRad) - RADIUS); // Added minimum z value
+
+  // Adjust scale and opacity ranges for closer cards
   const scale = mapRange(z, -RADIUS, 0, 0.7, 1);
-  const opacity = mapRange(z, -RADIUS, 0, 0.4, 1);
- 
+  const opacity = mapRange(z, -RADIUS, 0, 0.5, 1);
+
   return (
     <motion.div
       initial={false}
@@ -68,6 +74,7 @@ const NewsCard: React.FC<{
         width: '450px',
         transformStyle: 'preserve-3d',
         transformOrigin: 'center center',
+        pointerEvents: Math.abs(rotation) < 90 ? 'auto' : 'none',
       }}
       whileHover={{ 
         scale: scale * 1.1,

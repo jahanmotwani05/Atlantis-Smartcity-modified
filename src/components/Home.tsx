@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from './Navbar';  // Add this import
  
 interface NewsItem {
   title: string;
@@ -271,24 +272,26 @@ const CarouselContainer: React.FC<{
 };
  
 const Home: React.FC = () => {
-  const navigate = useNavigate();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
-  const [currentTime] = useState('2025-02-16 12:01:27');
-  const [currentUser] = useState('abhinavx04');
- 
-  const navItems = [
-    { name: 'Events', icon: '🎉', path: '/events' },
-    { name: 'Emergency', icon: '🚨', path: '/emergency' },
-    { name: 'Announcements', icon: '📢', path: '/announcements' },
-    { name: 'Transportation', icon: '🚗', path: '/transport' },
-    { name: 'Alerts', icon: '⚠️', path: '/alerts' },
-    { name: 'Ambulance', icon: '🚑', path: '/ambulance' },
-  ];
- 
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  // Add auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user.email || user.uid);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const categories = ['all', 'city', 'health', 'transport', 'emergency', 'events'];
  
   useEffect(() => {
@@ -406,61 +409,84 @@ const Home: React.FC = () => {
     return 'India';
   };
  
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
- 
   const filteredNews = news.filter(
     item => activeCategory === 'all' || item.category === activeCategory
   );
  
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* Background grid effect */}
-      <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:40px_40px] opacity-10" />
- 
-      <nav className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <span className="text-2xl text-white font-light">Atlantis</span>
-              <div className="hidden md:flex space-x-4">
-                {navItems.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => navigate(item.path)}
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
- 
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:block">
-                <span className="text-gray-400 text-sm">{currentTime} UTC</span>
-                <span className="text-gray-400 text-sm ml-4">{currentUser}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Logout
-              </button>
-            </div>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Smart City Grid Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:40px_40px] opacity-5" />
+        
+        {/* Floating Circuit Lines */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -inset-[10px] opacity-30">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute h-[2px] w-[100px] bg-blue-500/20"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  animation: `floatingCircuit ${10 + i * 2}s linear infinite`,
+                  transform: `rotate(${i * 60}deg)`,
+                }}
+              />
+            ))}
           </div>
         </div>
-      </nav>
+
+        {/* Cyber Pulse Effect */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px]">
+            <div className="absolute inset-0 bg-blue-500/5 rounded-full animate-cyber-pulse" />
+            <div className="absolute inset-0 bg-blue-500/3 rounded-full animate-cyber-pulse [animation-delay:750ms]" />
+            <div className="absolute inset-0 bg-blue-500/2 rounded-full animate-cyber-pulse [animation-delay:1500ms]" />
+          </div>
+        </div>
+
+        {/* Digital Rain Effect */}
+        <div className="absolute inset-0 opacity-10">
+          {[...Array(10)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute top-0 w-[1px] h-20 bg-gradient-to-b from-transparent via-blue-500 to-transparent"
+              style={{
+                left: `${i * 10}%`,
+                animation: `digitalRain ${5 + i * 0.5}s linear infinite`,
+                animationDelay: `${i * 0.2}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Add these styles to your existing CSS */}
+      <style>{`
+        @keyframes floatingCircuit {
+          0% { transform: translateY(0) translateX(0); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateY(-1000px) translateX(1000px); opacity: 0; }
+        }
+
+        @keyframes digitalRain {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100vh); }
+        }
+
+        @keyframes cyber-pulse {
+          0% { transform: scale(0.8); opacity: 0.5; }
+          50% { transform: scale(1); opacity: 0.3; }
+          100% { transform: scale(0.8); opacity: 0.5; }
+        }
+      `}</style>
+
+      <Navbar currentUser={currentUser || ''} />
  
-      <main className="pt-20">
+      <main className="pt-20 relative z-10">
         <div className="container mx-auto px-4">
+          {/* Update category buttons background */}
           <div className="mb-8 flex space-x-4 overflow-x-auto pb-2">
             {categories.map((category) => (
               <button
@@ -472,7 +498,7 @@ const Home: React.FC = () => {
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors
                   ${activeCategory === category
                     ? 'bg-blue-500 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'bg-gray-900/50 text-gray-300 hover:bg-gray-800/50'
                   }`}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -480,7 +506,7 @@ const Home: React.FC = () => {
             ))}
           </div>
         </div>
- 
+
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -553,10 +579,11 @@ const Home: React.FC = () => {
         )}
       </main>
  
+      {/* Update modal background */}
       {selectedNews && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50">
           <div className="container mx-auto px-4 py-16">
-            <div className="bg-gray-800 rounded-lg p-6 max-w-4xl mx-auto">
+            <div className="bg-gray-900/80 backdrop-blur-md rounded-lg p-6 max-w-4xl mx-auto border border-gray-800">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-2xl font-bold text-white">{selectedNews.title}</h2>
                 <button onClick={() => setSelectedNews(null)} className="text-gray-400 hover:text-white">

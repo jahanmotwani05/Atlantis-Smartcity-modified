@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
 
 interface NavbarProps {
@@ -20,6 +20,17 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Protect against unauthorized access
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -31,11 +42,41 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
 
   return (
     <>
-      {/* Add required font imports */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=swap');
+
+          .nav-border-animation {
+            position: relative;
+          }
+
+          .nav-border-animation::before {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(
+              to right,
+              transparent,
+              rgba(59, 130, 246, 0.5),
+              rgba(59, 130, 246, 0.8),
+              rgba(59, 130, 246, 0.5),
+              transparent
+            );
+            animation: borderFlow 4s linear infinite;
+          }
+
+          @keyframes borderFlow {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
+          }
 
           .nav-item {
             position: relative;
@@ -104,86 +145,93 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
         `}
       </style>
 
-      <nav className="fixed top-0 left-0 right-0 bg-gray-900 border-b border-gray-800 z-50 backdrop-blur-sm bg-opacity-80 nav-appear">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <span 
-                className="nav-logo text-2xl text-white font-medium tracking-wider hover:text-blue-400 transition-colors duration-300 cursor-pointer"
-                style={{ fontFamily: 'Syncopate, sans-serif' }}
-                onClick={() => navigate('/home')}
-              >
-                ATLANTIS
-              </span>
-              
-              <div className="hidden md:flex space-x-1">
-                {navItems.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => navigate(item.path)}
-                    className="nav-item text-gray-300 hover:text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
-                    style={{ fontFamily: 'Space Grotesk, sans-serif' }}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-all duration-300 px-4 py-2 rounded-lg"
-                style={{ fontFamily: 'Space Grotesk, sans-serif' }}
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center text-blue-400 font-medium">
-                  {currentUser.charAt(0).toUpperCase()}
-                </div>
-                <span className="hidden md:inline">{currentUser}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+      <nav className="nav-border-animation fixed top-0 left-0 right-0 z-50">
+        <div className="bg-black bg-opacity-80 backdrop-blur-sm">
+          <div 
+            className="max-w-7xl mx-auto px-4"
+            style={{
+              background: `radial-gradient(circle at 50% -50%, rgba(30, 58, 138, 0.1) 0%, transparent 50%)`
+            }}
+          >
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-8">
+                <span 
+                  className="nav-logo text-2xl text-white font-medium tracking-wider hover:text-blue-400 transition-colors duration-300 cursor-pointer"
+                  style={{ fontFamily: 'Syncopate, sans-serif' }}
+                  onClick={() => navigate('/home')}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {isProfileOpen && (
-                <div className="profile-dropdown absolute right-0 mt-2 w-48 rounded-lg bg-gray-800 border border-gray-700 shadow-lg py-1">
-                  <div className="px-4 py-2 border-b border-gray-700">
-                    <p className="text-sm text-gray-400" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Signed in as</p>
-                    <p className="text-sm font-medium text-white truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{currentUser}</p>
-                  </div>
-                  
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
-                    style={{ fontFamily: 'Space Grotesk, sans-serif' }}
-                  >
-                    Your Profile
-                  </button>
-                  
-                  <button
-                    onClick={() => navigate('/settings')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
-                    style={{ fontFamily: 'Space Grotesk, sans-serif' }}
-                  >
-                    Settings
-                  </button>
-                  
-                  <div className="border-t border-gray-700">
+                  ATLANTIS
+                </span>
+                
+                <div className="hidden md:flex space-x-1">
+                  {navItems.map((item) => (
                     <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors duration-200"
+                      key={item.name}
+                      onClick={() => navigate(item.path)}
+                      className="nav-item text-gray-300 hover:text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                       style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                     >
-                      Sign Out
+                      {item.name}
                     </button>
-                  </div>
+                  ))}
                 </div>
-              )}
+              </div>
+              
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-all duration-300 px-4 py-2 rounded-lg"
+                  style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center text-blue-400 font-medium">
+                    {currentUser.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="hidden md:inline">{currentUser}</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isProfileOpen && (
+                  <div className="profile-dropdown absolute right-0 mt-2 w-48 rounded-lg bg-gray-800 border border-gray-700 shadow-lg py-1">
+                    <div className="px-4 py-2 border-b border-gray-700">
+                      <p className="text-sm text-gray-400" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Signed in as</p>
+                      <p className="text-sm font-medium text-white truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{currentUser}</p>
+                    </div>
+                    
+                    <button
+                      onClick={() => navigate('/profile')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
+                      style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+                    >
+                      Your Profile
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate('/settings')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
+                      style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+                    >
+                      Settings
+                    </button>
+                    
+                    <div className="border-t border-gray-700">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors duration-200"
+                        style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

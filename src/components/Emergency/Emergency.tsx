@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 import { motion } from 'framer-motion';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { GOOGLE_MAPS_API_KEY, EMERGENCY_CONTACT, mapStyles } from './constants';
-import Navbar from '..//Navbar';
+import Navbar from '../Navbar';
 
 interface FormData {
   name: string;
@@ -30,9 +32,21 @@ const Emergency: React.FC = () => {
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   
-  // Current time state
+  const [currentUser, setCurrentUser] = useState<string>('');
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [currentUser] = useState<string>('Krishna27S');
+
+  // Add auth listener to get current user
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user.email || user.uid);
+      } else {
+        navigate('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Update current time every second
   useEffect(() => {
@@ -144,9 +158,9 @@ const Emergency: React.FC = () => {
 
       <main className="container mx-auto px-4 pt-20">
         {/* Title Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Atlantis Women's Safety</h1>
-          <p className="text-gray-400">24/7 Emergency Support & Assistance</p>
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-light text-white mb-3">Emergency Services</h1>
+          <p className="text-gray-400 text-sm">24/7 Support & Immediate Assistance</p>
           <p className="text-sm text-gray-500 mt-2">
             {currentTime} UTC | User: {currentUser}
           </p>
@@ -154,14 +168,14 @@ const Emergency: React.FC = () => {
 
         <div className="grid gap-6 mb-6">
           {/* Emergency Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleLocationEmergency}
-              className="bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg flex items-center justify-center space-x-3 text-lg font-semibold"
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 p-4 rounded-lg flex items-center justify-center space-x-3 text-sm font-medium border border-red-500/20"
             >
-              <span>🆘</span>
+              <span className="text-xl">🆘</span>
               <span>Emergency Call ({EMERGENCY_CONTACT})</span>
             </motion.button>
 
@@ -169,9 +183,9 @@ const Emergency: React.FC = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleWomenChildrenEmergency}
-              className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg flex items-center justify-center space-x-3 text-lg font-semibold"
+              className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 p-4 rounded-lg flex items-center justify-center space-x-3 text-sm font-medium border border-purple-500/20"
             >
-              <span>👧</span>
+              <span className="text-xl">👧</span>
               <span>Women & Children Emergency</span>
             </motion.button>
           </div>
@@ -196,7 +210,7 @@ const Emergency: React.FC = () => {
 
           {/* Map Section */}
           <div className="bg-gray-800 rounded-lg p-4">
-            <h2 className="text-xl text-white mb-4">Your Location & Nearby Emergency Services</h2>
+            <h2 className="text-xl font-light text-white mb-6">Your Location & Nearby Services</h2>
             <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={['places']}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
@@ -265,20 +279,20 @@ const Emergency: React.FC = () => {
           </div>
 
           {/* Emergency Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {['Police', 'Ambulance', 'Fire'].map((service, index) => (
               <motion.div
                 key={service}
                 whileHover={{ scale: 1.02 }}
-                className="bg-gray-800 p-4 rounded-lg"
+                className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700/50"
               >
-                <h3 className="text-lg text-white mb-2">{service}</h3>
-                <p className="text-gray-400 mb-3">
+                <h3 className="text-base font-light text-white mb-2">{service}</h3>
+                <p className="text-gray-400 text-sm mb-4">
                   Emergency: {index === 0 ? '100' : index === 1 ? '108' : '101'}
                 </p>
                 <button
                   onClick={() => makeEmergencyCall(index === 0 ? '100' : index === 1 ? '108' : '101')}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+                  className="w-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 py-2 rounded text-sm font-medium border border-blue-500/20"
                 >
                   Call Now
                 </button>
@@ -291,10 +305,10 @@ const Emergency: React.FC = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-gray-800 p-6 rounded-lg mb-6"
+          className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg mb-8 border border-gray-700/50"
         >
-          <h2 className="text-2xl font-semibold text-white mb-4">About Us</h2>
-          <p className="text-gray-300">
+          <h2 className="text-xl font-light text-white mb-4">About Our Services</h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
             Atlantis Women's Safety Initiative provides 24/7 emergency support and protection services
             for women in distress. Our team of trained professionals ensures immediate response and
             assistance whenever needed.
@@ -306,9 +320,9 @@ const Emergency: React.FC = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-gray-800 p-6 rounded-lg"
+            className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700/50"
           >
-            <h2 className="text-2xl font-semibold text-white mb-4">Contact Us</h2>
+            <h2 className="text-xl font-light text-white mb-6">Contact Us</h2>
             <div className="space-y-2 text-gray-300">
               <p>Emergency: 1091 (Toll-Free)</p>
               <p>Helpline: {EMERGENCY_CONTACT}</p>
@@ -319,9 +333,9 @@ const Emergency: React.FC = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-gray-800 p-6 rounded-lg"
+            className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700/50"
           >
-            <h2 className="text-2xl font-semibold text-white mb-4">Office Address</h2>
+            <h2 className="text-xl font-light text-white mb-4">Office Address</h2>
             <address className="text-gray-300 not-italic">
               Atlantis Women's Safety Center<br />
               123 Safety Street, Koramangala<br />
@@ -335,37 +349,37 @@ const Emergency: React.FC = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-gray-800 p-6 rounded-lg"
+          className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700/50"
         >
-          <h2 className="text-2xl font-semibold text-white mb-4">Email Us</h2>
-          <form className="space-y-4">
+          <h2 className="text-xl font-light text-white mb-6">Contact Us</h2>
+          <form className="space-y-6">
             <div>
-              <label className="block text-gray-300 mb-2">Name</label>
+              <label className="block text-gray-400 text-sm font-light mb-2">Name</label>
               <input
                 type="text"
-                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                className="w-full bg-gray-700/50 text-white rounded-lg px-4 py-3 text-sm font-light border border-gray-600/50 focus:border-blue-500/50 focus:outline-none"
                 placeholder="Your Name"
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2">Email</label>
+              <label className="block text-gray-400 text-sm font-light mb-2">Email</label>
               <input
                 type="email"
-                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                className="w-full bg-gray-700/50 text-white rounded-lg px-4 py-3 text-sm font-light border border-gray-600/50 focus:border-blue-500/50 focus:outline-none"
                 placeholder="Your Email"
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2">Message</label>
+              <label className="block text-gray-400 text-sm font-light mb-2">Message</label>
               <textarea
                 rows={4}
-                className="w-full bg-gray-700 text-white rounded px-4 py-2"
+                className="w-full bg-gray-700/50 text-white rounded-lg px-4 py-3 text-sm font-light border border-gray-600/50 focus:border-blue-500/50 focus:outline-none"
                 placeholder="Your Message"
               ></textarea>
             </div>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+              className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-6 py-3 rounded-lg text-sm font-medium border border-blue-500/20"
             >
               Send Message
             </button>

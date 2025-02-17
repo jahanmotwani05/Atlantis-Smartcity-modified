@@ -5,7 +5,7 @@ import { auth } from '../firebase/config';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar';  // Add this import
- 
+import AnimatedTagline from './AnimatedTagline';
 interface NewsItem {
   title: string;
   description: string;
@@ -437,15 +437,6 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Cyber Pulse Effect */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px]">
-            <div className="absolute inset-0 bg-blue-500/5 rounded-full animate-cyber-pulse" />
-            <div className="absolute inset-0 bg-blue-500/3 rounded-full animate-cyber-pulse [animation-delay:750ms]" />
-            <div className="absolute inset-0 bg-blue-500/2 rounded-full animate-cyber-pulse [animation-delay:1500ms]" />
-          </div>
-        </div>
-
         {/* Digital Rain Effect */}
         <div className="absolute inset-0 opacity-10">
           {[...Array(10)].map((_, i) => (
@@ -462,7 +453,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Add these styles to your existing CSS */}
+      {/* Update styles to remove cyber-pulse animation */}
       <style>{`
         @keyframes floatingCircuit {
           0% { transform: translateY(0) translateX(0); opacity: 0; }
@@ -474,16 +465,15 @@ const Home: React.FC = () => {
           0% { transform: translateY(-100%); }
           100% { transform: translateY(100vh); }
         }
-
-        @keyframes cyber-pulse {
-          0% { transform: scale(0.8); opacity: 0.5; }
-          50% { transform: scale(1); opacity: 0.3; }
-          100% { transform: scale(0.8); opacity: 0.5; }
-        }
       `}</style>
 
       <Navbar currentUser={currentUser || ''} />
- 
+      
+      {/* Add AnimatedTagline here, after Navbar but before main content */}
+      <div className="relative z-10">
+        <AnimatedTagline />
+      </div>
+
       <main className="pt-20 relative z-10">
         <div className="container mx-auto px-4">
           {/* Update category buttons background */}

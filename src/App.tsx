@@ -1,9 +1,7 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './components/Landing';
 import Home from './components/Home';
-import Emergency from './components/Emergency/Emergency';
-import FIRForm from './components/Emergency/FIRForm';
+import Announcement from './components/Announcement';
 
 function App() {
   return (
@@ -11,8 +9,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/emergency" element={<Emergency />} />
-        <Route path="/emergency/fir" element={<FIRForm />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/Announcement" element={<Announcement />} />
+        {/* Add other routes here */}
       </Routes>
     </Router>
   );
